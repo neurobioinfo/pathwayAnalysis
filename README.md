@@ -131,9 +131,9 @@ In CC clusters: download dotplots and look  at them to chose the go_terms that y
 Run next command only if you're working in CC clusters. Without closing your current R session, open a new terminal and run this command to download dotplots:
                     
 ```
-scp <CC_user_ID>@<CC_cluster_name>.computecanada.ca:<output_directory>/BP_go_dotplot.png.csv <local_project_directory>
-scp <CC_user_ID>@<CC_cluster_name>.computecanada.ca:<output_directory>/MF_go_dotplot.png.csv <local_project_directory>
-scp <CC_user_ID>@<CC_cluster_name>.computecanada.ca:<output_directory>/CC_go_dotplot.png.csv <local_project_directory>
+scp <CC_user_ID>@<CC_cluster_name>.computecanada.ca:<output_directory>/BP_go_dotplot.png <local_project_directory>
+scp <CC_user_ID>@<CC_cluster_name>.computecanada.ca:<output_directory>/MF_go_dotplot.png <local_project_directory>
+scp <CC_user_ID>@<CC_cluster_name>.computecanada.ca:<output_directory>/CC_go_dotplot.png <local_project_directory>
 ```
 
 You also can chose to show a number of top significant go terms.
@@ -159,16 +159,18 @@ go_cnetPlot(DEG_list, go_BP, go_MF, go_CC, "<output_directory>", BP_cats, MF_cat
 ```
 
 ### 9. Gsea analysis
- Functional class scoring (FCS) tools, such as GSEA, most often use the gene-level
- statistics or log2 fold changes for all genes from the differential expression results.
- Then it looks whether gene sets for particular biological pathways are enriched
+ Functional class scoring (FCS) tools, such as GSEA, frequently use all genes gene-level
+ statistics or log2 fold changes from the differential expression results.
+ This analysis looks whether gene sets for particular biological pathways are enriched
  among the large positive or negative fold changes.
 
  Its important to run this analysis with all genes from the DEG analysis.
  It is possible to run this analysis with a subset of genes, but this reduces power test.
- Below, there is another method to test a subset of genes
+ Below, we present another method to test on a subset of genes
+ 
 
-i. Create a new list with gene Entrez IDs and expression fold changes from all genes DEG list
+i. Usingh all genes DEG list, create a new list including only genes fold chanche and Entrez IDs 
+
 ```
 res_entrez<-add_entrezid(DEG_universe)
 foldchanges<-name_foldchanges(res_entrez)
@@ -176,24 +178,32 @@ foldchanges<-name_foldchanges(res_entrez)
 
 ii Run GSEA analysis, this function uses gseKEGG from "ClusterProfiler" to find
 KEGG pathways.
+
 ```
 gseaKEGG<-gseaKEGG_analysis(foldchanges, "<output_directory>")
 ```
 
-iii Look at the pathways csv file and generate a list of interesting pathways
+iii Look at the found pathways and create a list of interesting pathways.
+In RStudio: Look at pathways results table displayed in console
+In CC clusters: Scrool up to look at the command output to find the list of enriched pathways
+In both cases, create a vector including all pathways ID, of which you want to generate a GSEA plot and pathway image.
 example
+
 ```
 pathways<-c("hsa04360", "hsa05168", ...)
 ```
+
 iv Create GSEAplot and KEGG image for chosen pathways
-This function uses and it uses Pathview to generate pathway images
+This function uses Pathview to generate pathway images
+
 ```
 go_gseaKEGGplot(gseaKEGG, foldchanges, pathways, "<output_directory>")
 ```
 
 ### 10. KEGG enrichment analysis
-You can use this function to test if enrichment of KEEG pathways in a subset of genes. 
+You can use this function to look for enrichmed KEEG pathways in a subset of genes. 
 For example, you can run this function for a list of significant DEG genes.
+
 i. Create a gene Rentrez IDs lists from the DEG subset list 
 ```
 res_entrez_subset<-add_entrezid(DEG_list)

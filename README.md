@@ -171,7 +171,7 @@ go_cnetPlot(DEG_list, go_BP, go_MF, go_CC, "<output_directory>", BP_cats, MF_cat
  Below, we present another method to test on a subset of genes
  
 
-i. Usingh all genes DEG list, create a new list including only genes fold chanche and Entrez IDs 
+i. Using all genes DEG list, create a new list including genes fold change and Entrez IDs 
 
 ```
 res_entrez<-add_entrezid(DEG_universe)

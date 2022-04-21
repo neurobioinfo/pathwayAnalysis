@@ -2,10 +2,12 @@
 
 This workflow uses the gene ontology from Gene Ontology (GO) project. 
 It performs an over-representation analysis of GO terms in a list of significant genes using “ClusterProfiler” . 
-"ClusterProfiler" performs statistical enrichment analysis using hypergeometric testing of significant DE genes contrasted to
-a background DE gene list.
+This package performs statistical enrichment analysis in a list of differentially expressed genes using an hypergeometric test.
 
-Input: A significant differentially expressed gene list (DEG list) list and a background DEG list generated during a DEG analysis. 
+Input: 
+1. A list of background DEG list (universe gene list) generated during a DEG analysis. This list contains all mapped genes from RNAseq aligment, that were tested in the differential expression analysis.
+1. A list of significant differentially expressed genes (DEG list). This list of genes are significantly espressed genes extracted from the universe gene list. 
+
  
 You can run this workflow in a RStudio session in your PC or, if you're using Compute Canada (CC)
 clusters, you can run this workflow in an interactive R session.
@@ -14,7 +16,7 @@ clusters, you can run this workflow in an interactive R session.
 
 ### 1. Create a project directory structure to hold scripts, data and analysis output. 
 
-   In your PC or in your project space (if you're in CC clusters), create next folders (replace
+In your PC or in your project space (if you're in CC clusters), create next folders (replace
 <project_directory> by your project folder name):
 ```
 mkdir -p <project_directory>/data
@@ -90,7 +92,7 @@ i. Read universe gene list
 ```
 DEG_universe<-read.csv("data/<all_genes_DEG_list.csv>", header = TRUE, sep = ",", dec=".")
 ```
-ii. Read significant gene list
+ii. Read significant DEG list
 ```
 DEG_list<-read.csv("data/<significant_genes_DEG_list.csv>", header = TRUE, sep = ",", dec=".")
 ```

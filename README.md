@@ -206,7 +206,7 @@ go_gseaKEGGplot(gseaKEGG, foldchanges, pathways, "<output_directory>")
 You can use this function to look for enrichmed KEEG pathways in a subset of genes. 
 For example, you can run this function for a list of significant DEG genes.
 
-i. Create a gene Rentrez IDs lists from the DEG subset list 
+i. Create a gene Entrez IDs lists from the DEG subset list 
 ```
 res_entrez_subset<-add_entrezid(DEG_list)
 ```

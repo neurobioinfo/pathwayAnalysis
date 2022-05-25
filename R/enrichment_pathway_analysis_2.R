@@ -218,7 +218,7 @@ name_foldchanges<-function(res_entrez){
 # Input: foldChanges-EntrezIDs
 # Output: GSEA KEGG pathways csv file
 #         gseaKEGG object
-gseaKEGG_analysis<-function(foldchanges, output_dir, path_file_name){
+gseaKEGG_analysis<-function(foldchanges, output_dir, file_name){
   ## GSEA using gene sets 
   gseaKEGG_obj <- gseKEGG(foldchanges, # ordered named vector of fold changes (Entrez IDs are the associated names)
                       organism = "hsa", # supported organisms listed below
@@ -231,7 +231,7 @@ gseaKEGG_analysis<-function(foldchanges, output_dir, path_file_name){
   gseaKEGG_results <- gseaKEGG_obj@result
   
   ## Write GSEA results to file
-  file_name=(paste(output_dir, "/", path_file_name, sep=""))
+  file_name=(paste(output_dir, "/", file_name, sep=""))
   View(gseaKEGG_results)
   write.csv(gseaKEGG_results, file_name)
   
@@ -292,7 +292,28 @@ enrichKEGG_analysis<-function(res_entrez, output_dir){
 # Output: Gene set txt file
 # Warning: this function is in development
 
-get_geneID<-function(gsea_results_file){
+get_geneID<-function(gseaKEGG_obj, output_dir){
+  library(annotate)
+  library(stringr)
+  library(purrr)
+  
+  ## Extract the GSEA results
+  gsea_results <- transpose(gseaKEGG_obj@result, .names = NULL)
+  
+  for (pathway in gsea_results){
+    path_id=pathway[1]
+    print(path_id)
+    entrezid_genes<-as.character(pathway[11])
+    print(entrezid_genes)
+    entrezid_genes<-strsplit(entrezid_genes, split = "/")
+    entrezid_genes<-unlist(entrezid_genes)
+    gene<-getSYMBOL(as.character(entrezid_genes), data='org.Hs.eg')
+    file_name=paste(output_dir, "/", path_id, "_gene_set.txt", sep="")
+    write.table(gene, file=file_name)
+  }
+}
+
+get_geneID_fromFile<-function(gsea_results_file){
   library(annotate)
   library(stringr)
   gsea_results<-read.csv("gseaKEGG_results.csv")
@@ -302,3 +323,5 @@ get_geneID<-function(gsea_results_file){
   gene<-getSYMBOL(as.character(entrezid_genes), data='org.Hs.eg')
   write.table(gene, file="hsa04360_gene_set.txt")
 }
+
+

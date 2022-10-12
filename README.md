@@ -76,11 +76,13 @@ are already written in the run_enrichment_pathway_analysis.R script.
 ```
 packages<-c(`tidyverse`, `DOSE`, `pathview`, `clusterProfiler`, `enrichplot`, `org.Hs.eg.db`)
 lapply(packages, library, character.only = TRUE)
+
+.libPaths( c( "~/R/x86_64-pc-linux-gnu-library/4.1" , .libPaths() ) )
 ```
 6. Set the working directory and source the enrichment_pathway_analysis_2.R script.
 ```
 setwd("<project_directory>")
-source("scripts/enrichment_pathway_analysis_2.R")
+source("scripts/pathwayAnalysis/R/enrichment_pathway_analysis_2.R")
 ```
 This script contains custom functions to run clusterProfiler for a pathway enrichment analysis
 

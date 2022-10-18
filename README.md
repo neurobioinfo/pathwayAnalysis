@@ -19,6 +19,8 @@ clusters, you can run this workflow in an interactive R session.
 In your PC or in your project space (if you're in CC clusters), create next folders (replace
 <project_directory> by your project folder name):
 ```
+sudo apt install liblapack-dev libopenblas-dev
+
 mkdir -p <project_directory>/data
 mkdir -p <project_directory>/scripts
 mkdir -p <project_directory>/output

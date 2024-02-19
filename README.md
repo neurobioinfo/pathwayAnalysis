@@ -76,7 +76,7 @@ are already written in the run_enrichment_pathway_analysis.R script.
 
 
 ```
-packages<-c(`tidyverse`, `DOSE`, `pathview`, `clusterProfiler`, `enrichplot`, `org.Hs.eg.db`)
+packages<-c('tidyverse', 'DOSE', 'pathview', 'clusterProfiler', 'enrichplot', 'org.Hs.eg.db')
 lapply(packages, library, character.only = TRUE)
 
 .libPaths( c( "~/R/x86_64-pc-linux-gnu-library/4.1" , .libPaths() ) )

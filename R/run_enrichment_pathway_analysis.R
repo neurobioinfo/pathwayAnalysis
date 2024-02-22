@@ -48,18 +48,19 @@ DEG_universe<-read.csv("data/<all_genes_DEG_list.csv>", header = TRUE, sep = ","
 DEG_list<-read.csv("data/<significant_genes_DEG_list.csv>", header = TRUE, sep = ",", dec=".")
 
 # iii. Extract Genes ids list
-genes_universe<-extract_genesID(DEG_universe)
-genes_list<-extract_genesID(DEG_list)
+genes_universe<-extract_genesID(DEG_universe, Deseq2)
+genes_list<-extract_genesID(DEG_list, Deseq2)
 
 # iv. Run GO enrichment analysis. this function uses "enrichGO" from clusterProfiler
-go_BP<-go_enrichment_obj(genes_list, genes_universe, "BP", 0.05, "<output_directory>/BP_go.csv")
-go_MF<-go_enrichment_obj(genes_list, genes_universe, "MF", 0.05, "<output_directory>/MF_go.csv")
-go_CC<-go_enrichment_obj(genes_list, genes_universe, "CC", 0.05, "<output_directory>/CC_go.csv")
-
+annotationType="SYMBOL"
+go_BP<-go_enrichment_obj(genes_list, genes_universe, "BP", 0.05, "<output_directory>/BP_go.csv", annotationType)
+go_MF<-go_enrichment_obj(genes_list, genes_universe, "MF", 0.05, "<output_directory>/MF_go.csv", annotationType)
+go_CC<-go_enrichment_obj(genes_list, genes_universe, "CC", 0.05, "<output_directory>/CC_go.csv", annotationType)
+go_ALL<-go_enrichment_obj(genes_list, genes_universe, "ALL", 0.05, "<output_directory>/ALL_go.csv", annotationType)
 
 ## 7. Generate dotplots, emaplots and cnetplots
 # i. Generate doptplots
-go_dotPlot(go_BP, go_MF, go_CC, "output_directory")
+go_dotPlot(go_BP, go_MF, go_CC, go_ALL, "output_directory")
 
 # ii. In RStudio: Look at the dotplots and choose the go categories to show in emaplots and cnetplots.
 #     In CC clusters: download dotplots and loot  at them to chose go categories to show in emaplots and cnetplots.
@@ -78,9 +79,10 @@ BP_cats=c("learning or memory", "central nervous system neuron differentiation",
 MF_cats=5
 CC_cats=c("presynapse", "integral component of presynaptic membrane", 
           "intrinsic component of presynaptic membrane", "presynaptic membrane")
+ALL_cats=20
 
 # iv. Generate enrichment GO plot (emaplot)
-go_emaPlot(go_BP, go_MF, go_CC, "<output_directory>", BP_cats, MF_cats, CC_cats)
+go_emaPlot(go_BP, go_MF, go_CC, go_ALL, "<output_directory>", BP_cats, MF_cats, CC_cats, ALL_cats)
 
 # v. Generate Cnetplots:
 go_cnetPlot(DEG_list, go_BP, go_MF, go_CC, "<output_directory>", BP_cats, MF_cats, CC_cats)
@@ -96,13 +98,20 @@ go_cnetPlot(DEG_list, go_BP, go_MF, go_CC, "<output_directory>", BP_cats, MF_cat
 # It is possible to run this analysis with a subset of genes, but this reduces power test.
 # Below, there is another method to test a subset of genes
 
+# 0. Rename gene_symbol and fold change columns
+DEG_universe<-rename_geneSymbol_column(DEG_universe, 1, "Deseq2")
+DEG_list<-rename_geneSymbol_column(DEG_list, 1,	"Deseq2")
+
+DEG_universe<-rename_foldChange_column(DEG_universe, 3, "Deseq2")
+DEG_list<-rename_foldChange_column(DEG_list, 3, "Deseq2")
+
 # i. Create a new list with gene Entrez IDs and expression fold changes from all genes DEG list
 res_entrez<-add_entrezid(DEG_universe)
 foldchanges<-name_foldchanges(res_entrez)
 
 # ii Run GSEA analysis, this function uses gseKEGG from "ClusterProfiler" to find
 # KEGG pathways, and it uses Pathview to generate pathway images
-gseaKEGG<-gseaKEGG_analysis(foldchanges, "<output_directory>")
+gseaKEGG<-gseaKEGG_analysis(foldchanges, "<output_directory>", "gseaKEGG_pathways.csv")
 
 # iii Look at the pathways csv file and generate a list of interesting pathways
 example

@@ -19,9 +19,14 @@ library(org.Hs.eg.db)
 # 2. Extract genes IDs
 # Input: DEG gene list
 # Output: genes ID list
-extract_genesID<- function(DEG_geneList){
-  genes_ids_list <- as.character(DEG_geneList$target_id)
-  return(genes_ids_list)
+extract_genesID<- function(DEG_geneList, inputType){
+  if (inputType=="Sleuth") {
+	genes_ids_list <- as.character(DEG_geneList$target_id)
+	return(genes_ids_list)
+  } else if (inputType=="Deseq2") {
+        genes_ids_list <- as.character(DEG_geneList$X)
+        return(genes_ids_list)
+  } 
 }
 
 #3. ## Run GO enrichment analysis 
@@ -32,10 +37,10 @@ extract_genesID<- function(DEG_geneList){
 #        output file name
 # Output: enrichGo object
 #        enriched go_terms csv file
-go_enrichment_obj<-function(genes_ids_list, universe_ids_list, go_cathegory, q_cutoff, file_name){
+go_enrichment_obj<-function(genes_ids_list, universe_ids_list, go_cathegory, q_cutoff, file_name, annotationType){
   go <- enrichGO(gene = genes_ids_list, 
                  universe = universe_ids_list,
-                 keyType = "ENSEMBL",
+                 keyType = annotationType,
                  OrgDb = org.Hs.eg.db, 
                  ont = go_cathegory, 
                  pAdjustMethod = "BH", 
@@ -54,10 +59,10 @@ go_enrichment_obj<-function(genes_ids_list, universe_ids_list, go_cathegory, q_c
 #        MF_go Molecular function (MF) EnrichGo object
 #        CC_goCelular component (CC) EnrichGo object
 # Output: Dotplots for each GO cathegory
-go_dotPlot<-function(BP_go, MF_go, CC_go, output_dir){
+go_dotPlot<-function(BP_go, MF_go, CC_go, ALL_go, output_dir){
   
-  go_objs=c(BP_go, MF_go, CC_go)
-  go_cats=c("BP", "MF", "CC")
+  go_objs=c(BP_go, MF_go, CC_go, ALL_go)
+  go_cats=c("BP", "MF", "CC", "ALL")
   i=1
   for (go_obj in go_objs){
     dotPlot_file=(paste(output_dir, "/", go_cats[i], "_dotplot.png", sep=""))
@@ -81,11 +86,11 @@ go_dotPlot<-function(BP_go, MF_go, CC_go, output_dir){
 #        MF_cats MF go terms list or Number of top go terms
 #        CC_cats CC go terms list or Number of top go terms
 # Output: Enrichment GO plots for each cathegory
-go_emaPlot<-function(go_BP, go_MF, go_CC, output_dir, BP_cats, MF_cats, CC_cats){
+go_emaPlot<-function(go_BP, go_MF, go_CC, go_ALL, output_dir, BP_cats, MF_cats, CC_cats, ALL_cats){
   
-  go_objs=c(go_BP, go_MF, go_CC)
-  go_terms=list(BP_cats, MF_cats, CC_cats)
-  go_cats=c("BP", "MF", "CC")
+  go_objs=c(go_BP, go_MF, go_CC, go_ALL)
+  go_terms=list(BP_cats, MF_cats, CC_cats, ALL_cats)
+  go_cats=c("BP", "MF", "CC", "ALL")
   i=1
   for (go_obj in go_objs){
     print(paste("generate Emaplot for", go_cats[i]))
@@ -116,7 +121,7 @@ go_emaPlot<-function(go_BP, go_MF, go_CC, output_dir, BP_cats, MF_cats, CC_cats)
 #        MF_cats MF go terms list or Number of top go terms
 #        CC_cats CC go terms list or Number of top go terms
 # Output: Cathegory cnetplot for each GO cathegory
-go_cnetPlot<-function(DEG_list, go_BP, go_MF, go_CC, output_dir, BP_cats, MF_cats, CC_cats){
+go_cnetPlot<-function(DEG_list, go_BP, go_MF, go_CC, go_ALL, output_dir, BP_cats, MF_cats, CC_cats, ALL_cats){
   
   ## extract the log2 fold changes from our results table 
   foldchanges <- DEG_list$b
@@ -124,9 +129,9 @@ go_cnetPlot<-function(DEG_list, go_BP, go_MF, go_CC, output_dir, BP_cats, MF_cat
   
   ## Cnetplot details the genes associated with one or more terms - by default gives
   # the top 5 significant terms (by padj)
-  go_objs=c(go_BP, go_MF, go_CC)
-  go_terms=list(BP_cats, MF_cats, CC_cats)
-  go_cats=c("BP", "MF", "CC")
+  go_objs=c(go_BP, go_MF, go_CC, go_ALL)
+  go_terms=list(BP_cats, MF_cats, CC_cats, ALL_cats)
+  go_cats=c("BP", "MF", "CC", "ALL")
   i=1
   for (go_obj in go_objs){
     
@@ -161,6 +166,22 @@ go_cnetPlot<-function(DEG_list, go_BP, go_MF, go_CC, output_dir, BP_cats, MF_cat
 # Gene set enrichment analysis uses clusterProfiler and Pathview
 # To perform GSEA analysis of KEGG gene sets. clusterProfiler requires the genes to be
 # identified using Entrez IDs for all genes in our results dataset. 
+
+# 0. Rename gene_symbol column
+rename_geneSymbol_column<-function(DEG_list, columnNumber, inputType){
+	if (inputType!="Sleuth") {
+		colnames(DEG_list)[columnNumber] ="ext_gene"
+	}
+	return(DEG_list)
+}
+
+rename_foldChange_column<-function(DEG_list, columnNumber, inputType){
+        if (inputType!="Sleuth") {
+                colnames(DEG_list)[columnNumber] ="b"
+        }
+	return(DEG_list)
+}
+
 
 
 #Add ENTREZID notation to DEG table

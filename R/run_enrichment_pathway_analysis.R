@@ -33,7 +33,7 @@ lapply(packages, library, character.only = TRUE)
 
 # 5. Set the <project_directory> as working directory and source the enrichment_pathway_analysis_2.R script.
 setwd("<project_directory>")
-source("scripts/enrichment_pathway_analysis_2.R")
+source("<path/to/repository/R/enrichment_pathway_analysis_2.R")
 #    This script contains custom functions to run clusterProfiler for a pathway enrichment analysis
 
 ## ANALYSIS BEGINS HERE
@@ -46,12 +46,16 @@ DEG_universe<-read.csv("data/<all_genes_DEG_list.csv>", header = TRUE, sep = ","
 
 # ii. Read significant gene list
 DEG_list<-read.csv("data/<significant_genes_DEG_list.csv>", header = TRUE, sep = ",", dec=".")
+## Or extract significant genes with next commands:
+# Subset differentially expressed genes
+DEG_list <- subset(DEG_univrsOrder, padj < 0.05)
 
 # iii. Extract Genes ids list
 genes_universe<-extract_genesID(DEG_universe, Deseq2)
 genes_list<-extract_genesID(DEG_list, Deseq2)
 
 # iv. Run GO enrichment analysis. this function uses "enrichGO" from clusterProfiler
+#Change here the annotation type
 annotationType="SYMBOL"
 go_BP<-go_enrichment_obj(genes_list, genes_universe, "BP", 0.05, "<output_directory>/BP_go.csv", annotationType)
 go_MF<-go_enrichment_obj(genes_list, genes_universe, "MF", 0.05, "<output_directory>/MF_go.csv", annotationType)
@@ -85,7 +89,7 @@ ALL_cats=20
 go_emaPlot(go_BP, go_MF, go_CC, go_ALL, "<output_directory>", BP_cats, MF_cats, CC_cats, ALL_cats)
 
 # v. Generate Cnetplots:
-go_cnetPlot(DEG_list, go_BP, go_MF, go_CC, "<output_directory>", BP_cats, MF_cats, CC_cats)
+go_cnetPlot(DEG_list, go_BP, go_MF, go_CC, go_ALL, "<output_directory>", BP_cats, MF_cats, CC_cats, ALL_cats)
 
 
 # 8. Gsea analysis
@@ -99,11 +103,11 @@ go_cnetPlot(DEG_list, go_BP, go_MF, go_CC, "<output_directory>", BP_cats, MF_cat
 # Below, there is another method to test a subset of genes
 
 # 0. Rename gene_symbol and fold change columns
-DEG_universe<-rename_geneSymbol_column(DEG_universe, 1, "Deseq2")
-DEG_list<-rename_geneSymbol_column(DEG_list, 1,	"Deseq2")
+DEG_universe<-rename_geneSymbol_column(DEG_universe, 1, "<inputType: Seurat/Deseq2>")
+DEG_list<-rename_geneSymbol_column(DEG_list, 1,	"<inputType: Seurat/Deseq2>")
 
-DEG_universe<-rename_foldChange_column(DEG_universe, 3, "Deseq2")
-DEG_list<-rename_foldChange_column(DEG_list, 3, "Deseq2")
+DEG_universe<-rename_foldChange_column(DEG_universe, 3, "<inputType: Seurat/Deseq2>")
+DEG_list<-rename_foldChange_column(DEG_list, 3, "<inputType: Seurat/Deseq2>")
 
 # i. Create a new list with gene Entrez IDs and expression fold changes from all genes DEG list
 res_entrez<-add_entrezid(DEG_universe)
@@ -114,12 +118,12 @@ foldchanges<-name_foldchanges(res_entrez)
 gseaKEGG<-gseaKEGG_analysis(foldchanges, "<output_directory>", "gseaKEGG_pathways.csv")
 
 # iii Look at the pathways csv file and generate a list of interesting pathways
-example
+# example:
 pathways<-c("hsa04360", "hsa05168", ...)
 
 # iv Create GSEAplot and KEGG image for chosen pathways
 # This function uses and it uses Pathview to generate pathway images
-go_gseaKEGGplot(gseaKEGG, foldchanges, pathways, "<output_directory>")
+go_gseaKEGGplot(gseaKEGG, foldchanges, pathways, "<output_directory>", <"file_prefix>")
 
 # 9. KEGG enrichment analysis
 # You can use this function to test if enrichment of KEEG pathways in a subset of genes. 

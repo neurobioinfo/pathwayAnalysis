@@ -1,14 +1,13 @@
 # Running enrichment pathway analysis
 
 This workflow uses the gene ontology from Gene Ontology (GO) project. 
-It performs an over-representation analysis of GO terms in a list of significant genes using “ClusterProfiler” . 
-This package performs statistical enrichment analysis in a list of differentially expressed genes using an hypergeometric test.
-
-Input: 
-1. A list of background DEG list (universe gene list) generated during a DEG analysis. This list contains all mapped genes from RNAseq aligment, that were tested in the differential expression analysis.
-1. A list of significant differentially expressed genes (DEG list). This list of genes are significantly espressed genes extracted from the universe gene list. 
-
+It performs over-representation (ORA) and path enrichment (GSEA) analysis of GO terms and KEEG pathways
+in a list of significant genes using “ClusterProfiler” .
+ORA analysis performs statistical enrichment  analysis using hypergeometric testing of significant DE genes against 
+a background DE gene list.
  
+Input: a significant DE gene list and a background DE gene list 
+
 You can run this workflow in a RStudio session in your PC or, if you're using Compute Canada (CC)
 clusters, you can run this workflow in an interactive R session.
 
@@ -35,8 +34,6 @@ git clone https://github.com/neurobioinfo/pathwayAnalysis
 ### 3. Input: DEG list files :
 
    a) all_genes_DEG list file
-   
-   b) significant_genes_DEG list file
 
 A DEG list file is a csv file with "," as separator and "." for decimals, and it contains DEG associated statistics.
 
@@ -57,38 +54,39 @@ cp <DEG_analysis_directory>/<all_DEG_list.csv> <project_directory>/data
 cp <DEG_analysis_directory>/<significant_genes_DEG_list.csv> <project_directory>/data
 ```
 
-### 4. Launch R or RStudio.
+### 4. Launch R in CC clusters or RStudio in your PC.
 
-If you're using CC clusters, open a Salloc session, load bioconductor module and launch R:
+In CC clusters, load bioconductor module and launch R:
 ```
-salloc --time=02:00:00 -N 1 --ntasks-per-node=8 --mem-per-cpu=4G --account=rrg-grouleau-ac
 module load StdEnv/2020  gcc/9.3.0 r-bundle-bioconductor/3.14
 R
 ```
 
-If you're using your PC, open a RStudio session and open the run_enrichment_pathway_analysis.R script. 
+If you're using your PC, open a RStudio session and open the run_enrichment_pathway_analysis.R script.
 
-Run all following commands within the R interactive session or the RStudio session. These commands
+### 5. Install required packages: tidyverse, DOSE, pathview, clusterProfiler, enrichplot, org.Hs.eg.db., ggupset
+
+Run all following commands within an R interactive session in CC clusyers or the in a RStudio session. These commands
 are already written in the run_enrichment_pathway_analysis.R script.
 
 
-### 5. Install required packages: tidyverse, DOSE, pathview, clusterProfiler, enrichplot, org.Hs.eg.db.
-
-
-```
-packages<-c('tidyverse', 'DOSE', 'pathview', 'clusterProfiler', 'enrichplot', 'org.Hs.eg.db')
-lapply(packages, library, character.only = TRUE)
-
-.libPaths( c( "~/R/x86_64-pc-linux-gnu-library/4.1" , .libPaths() ) )
-```
-6. Set the working directory and source the enrichment_pathway_analysis_2.R script.
+### 6. Set the working directory working directory and source the enrichment_pathway_analysis_2.R script.
 ```
 setwd("<project_directory>")
+set.seed(1)
 source("scripts/pathwayAnalysis/R/enrichment_pathway_analysis_2.R")
 ```
 This script contains custom functions to run clusterProfiler for a pathway enrichment analysis
 
 ## PATHWAY ENRICHMENT ANALYSIS BEGINS HERE
+Declare variables:
+```
+DGE_universe_file="data/<Full DGE list (significant and non significant)>"
+DGE_significant_file="data/<File name of significant DGE list>"
+results="<name of results directory>"
+annotationType="<annotationType: SYMBOL or ENTREZ>"
+inputType="<software used for DGE analysis: deseq2, Sleuth, Seurat>"
+```
 
 ### 7. Generate EnrichGo objects and significant GO terms files for three Go categories: Biological processes (BP), Molecular function (MF) and cellular components (CC)
 

@@ -156,7 +156,6 @@ go_dotPlot(gseaGo_BP, gseaGo_MF, gseaGo_CC, gseaGo_ALL, go_gsea_results, "GSEA")
 ```
 
 
-
 ii. In RStudio: Look at the dotplots and choose the go_terms of each GO_category to be shown in emaplots and cnetplots.
 
 
@@ -169,7 +168,7 @@ iii. In your Rstudio session, or in your R interactive session, create vectors w
 In this code, we chose to pick all the go terms in the simplified lists
 
                        
-#   Next code takes all terms in the simplified list of terms
+Next code takes all terms in the simplified list of terms
 ```
 # ORA number of term
 BP_cats=dim(go_BP)[1]

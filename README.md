@@ -5,7 +5,7 @@ It performs over-representation (ORA) and pathways enrichment (GSEA) analysis of
 ORA analysis performs statistical enrichment analysis using hypergeometric testing of significant DE genes against 
 a background DE gene list.
  
-Input: a significant DE gene list and a background DE gene list 
+Input: a DE gene list 
 
 You can run this workflow in a RStudio session in your PC or, if you're using Compute Canada (CC)
 clusters, you can run this workflow in an interactive R session.

@@ -33,16 +33,18 @@
 ########################################################################################
 
 # 0. Set the <project_directory> as working directory and source the enrichment_pathway_analysis_2.R script.
-setwd("<project directory>")
+setwd("/home/geo/Documents/neuro/projects/Rhalena_scRNA_DGE_analysis/NPC_cell_based_analysis/DAneurons")
 set.seed(1)
-source("scripts/pathwayAnalysis/R/enrichment_pathway_analysis_2.R")
+source("/home/geo/Documents/neuro/projects/enrichment_pathway/pathwayAnalysis/R/enrichment_pathway_analysis_2.R")
 
-DGE_universe_file="data/<Full DGE list (significant and non significant)>"
-DGE_significant_file="data/<File name of significant DGE list>"
-results="<name of results directory>"
-annotationType="<annotationType: SYMBOL or ENTREZ>"
-inputType="<software used for DGE analysis: deseq2, Sleuth, Seurat>"
-
+DGE_universe_file="data/<DEG_file_name.csv>"
+DGE_significant_file="data/DEG_sig_file_name.csv"
+annotationType="<annotatyon type SYMBOL or ENTREZ>"
+inputType="DGE package name: Deseq2, Seurat, sleuth"
+go_ora_results="results/GO_ORA"
+go_gsea_results="results/GO_GSEA"
+kegg_ora_results="results/KEGG_ORA"
+kegg_gsea_results="results/KEGG_GSEA"
 
 ## ANALYSIS BEGINS HERE
 
@@ -67,10 +69,10 @@ genes_universe<-extract_genesID(DEG_universe)
 genes_list<-extract_genesID(DEG_list)
 
 # 4. Run GO Overrepresentation analysis. this function uses "enrichGO" from clusterProfiler
-go_BP<-go_enrichment_obj(genes_list, genes_universe, "BP", 0.05, 0.6, results, annotationType)
-go_MF<-go_enrichment_obj(genes_list, genes_universe, "MF", 0.05, 0.6, results, annotationType)
-go_CC<-go_enrichment_obj(genes_list, genes_universe, "CC", 0.05, 0.6, results, annotationType)
-go_ALL<-go_enrichment_obj(genes_list, genes_universe, "ALL", 0.05, 0.6, results, annotationType)
+go_BP<-go_enrichment_obj(genes_list, genes_universe, "BP", 0.05, 0.6, go_ora_results, annotationType)
+go_MF<-go_enrichment_obj(genes_list, genes_universe, "MF", 0.05, 0.6, go_ora_results, annotationType)
+go_CC<-go_enrichment_obj(genes_list, genes_universe, "CC", 0.05, 0.6, go_ora_results, annotationType)
+go_ALL<-go_enrichment_obj(genes_list, genes_universe, "ALL", 0.05, 0.6, go_ora_results, annotationType)
 
 # 5. GO enrichment analysis 
 ## extract the log2 fold changes from our results table 
@@ -78,15 +80,15 @@ dim(DEG_universe)
 res_entrez<-add_entrezid(DEG_universe)
 foldchanges<-name_foldchanges(res_entrez, annotationType)
 
-gseaGo_BP<-gseaGO_analysis(foldchanges, "BP", 0.5, results, annotationType)
-gseaGo_MF<-gseaGO_analysis(foldchanges, "MF", 0.5, results, annotationType)
-gseaGo_CC<-gseaGO_analysis(foldchanges, "CC", 0.5, results, annotationType)
-gseaGo_ALL<-gseaGO_analysis(foldchanges, "ALL", 0.5, results, annotationType)
+gseaGo_BP<-gseaGO_analysis(foldchanges, "BP", 0.5, go_gsea_results, annotationType)
+gseaGo_MF<-gseaGO_analysis(foldchanges, "MF", 0.5, go_gsea_results, annotationType)
+gseaGo_CC<-gseaGO_analysis(foldchanges, "CC", 0.5, go_gsea_results, annotationType)
+gseaGo_ALL<-gseaGO_analysis(foldchanges, "ALL", 0.5, go_gsea_results, annotationType)
 
 ## 6. Generate dotplots, emaplots and cnetplots
 # i. Generate doptplots
-go_dotPlot(go_BP, go_MF, go_CC, go_ALL, results, "ORA")
-go_dotPlot(gseaGo_BP, gseaGo_MF, gseaGo_CC, gseaGo_ALL, results, "GSEA")
+go_dotPlot(go_BP, go_MF, go_CC, go_ALL, go_ora_results, "ORA")
+go_dotPlot(gseaGo_BP, gseaGo_MF, gseaGo_CC, gseaGo_ALL, go_gsea_results, "GSEA")
 
 # In RStudio: Look at the dotplots and choose the go categories to show in emaplots and cnetplots.
 #     In CC clusters: download dotplots and loot  at them to chose go categories to show in emaplots and cnetplots.
@@ -108,20 +110,20 @@ BP_cats=dim(go_BP)[1]
 MF_cats=dim(go_MF)[1]
 CC_cats=dim(go_CC)[1]
 ALL_cats=dim(go_ALL)[1]
-go_emaPlot(go_BP, go_MF, go_CC, go_ALL, results, BP_cats, MF_cats, CC_cats, ALL_cats, "ORA")
+go_emaPlot(go_BP, go_MF, go_CC, go_ALL, go_ora_results, BP_cats, MF_cats, CC_cats, ALL_cats, "ORA")
 
 # GSEA number of term
 BP_gsea_cats=dim(gseaGo_BP)[1]
 MF_gsea_cats=dim(gseaGo_MF)[1]
 CC_gsea_cats=dim(gseaGo_CC)[1]
 ALL_gsea_cats=dim(gseaGo_ALL)[1]
-go_emaPlot(gseaGo_BP, gseaGo_MF, gseaGo_CC, gseaGo_ALL, results, 
+go_emaPlot(gseaGo_BP, gseaGo_MF, gseaGo_CC, gseaGo_ALL, go_gsea_results, 
            BP_gsea_cats, MF_gsea_cats, CC_gsea_cats, ALL_gsea_cats, "GSEA")
 
 
 # iv. Generate Cnetplots:
-go_cnetPlot(DEG_list, go_BP, go_MF, go_CC, go_ALL, results, BP_cats, MF_cats, CC_cats, ALL_cats, "ORA")
-go_cnetPlot(DEG_list, gseaGo_BP, gseaGo_MF, gseaGo_CC, gseaGo_ALL, results, 
+go_cnetPlot(DEG_list, go_BP, go_MF, go_CC, go_ALL, go_ora_results, BP_cats, MF_cats, CC_cats, ALL_cats, "ORA")
+go_cnetPlot(DEG_list, gseaGo_BP, gseaGo_MF, gseaGo_CC, gseaGo_ALL, go_gsea_results, 
             BP_gsea_cats, MF_gsea_cats, CC_gsea_cats, ALL_gsea_cats, "GSEA")
 
 
@@ -139,13 +141,15 @@ go_cnetPlot(DEG_list, gseaGo_BP, gseaGo_MF, gseaGo_CC, gseaGo_ALL, results,
 res_entrez<-add_entrezid(DEG_universe)
 fc_entrez<-name_foldchanges(res_entrez, "ENTREZ")
 
+gseaKEGG<-gseaKEGG_analysis(fc_entrez, kegg_gsea_results, "gseaKEGG_pathways.csv")
+
 # ii Look at the pathways csv file and generate a list of interesting pathways
 # example
-pathways<-c("hsa04740", "hsa03010", "hsa05016")
+pathways<-c("hsa00515", "hsa04512")
 
 # iii Create GSEAplot and KEGG image for chosen pathways
 # This function uses and it uses Pathview to generate pathway images
-go_gseaKEGGplot(gseaKEGG, fc_entrez, pathways, "<output_directory>")
+go_gseaKEGGplot(gseaKEGG, fc_entrez, pathways, kegg_gsea_results)
 
 # 8. ORA analysis on KEGG pathway
 # You can use this function to test if enrichment of KEEG pathways in a subset of genes. 
@@ -155,7 +159,7 @@ res_entrez_subset<-add_entrezid(DEG_list)
 res_entrez<-add_entrezid(DEG_list)
 dim(res_entrez_subset)
 # ii Run the enrichKEGG analysis 
-KEGGenrich<-enrichKEGG_analysis(res_entrez_subset, results)
+KEGGenrich<-enrichKEGG_analysis(res_entrez_subset, res_entrez, kegg_ora_results)
 
 
 ###################################################################

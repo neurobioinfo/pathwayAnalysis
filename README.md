@@ -83,7 +83,7 @@ source("repository_folder>/pathwayAnalysis/R/enrichment_pathway_analysis_2.R")
 ```
 This script contains custom functions to run clusterProfiler for a pathway enrichment analysis
 
-## PATHWAY ENRICHMENT ANALYSIS BEGINS HERE
+## 7. PATHWAY ENRICHMENT ANALYSIS BEGINS HERE
 Declare variables:
 ```
 DGE_universe_file="data/<DEG_file_name.csv>"
@@ -95,7 +95,6 @@ go_gsea_results="results/GO_GSEA"
 kegg_ora_results="results/KEGG_ORA"
 kegg_gsea_results="results/KEGG_GSEA"
 ```
-## ANALYSIS BEGINS HERE
 
 1. Read universe gene list
 ```
@@ -147,14 +146,11 @@ gseaGo_CC<-gseaGO_analysis(foldchanges, "CC", 0.5, go_gsea_results, annotationTy
 gseaGo_ALL<-gseaGO_analysis(foldchanges, "ALL", 0.5, go_gsea_results, annotationType)
 ```
 
-#### AQUI MU QUEDE ###
-
-
-
 ### 8. Generate dotplots, emaplots and cnetplots
 i. Generate doptplots
 ```
-go_dotPlot(go_BP, go_MF, go_CC, "output_directory")
+go_dotPlot(go_BP, go_MF, go_CC, go_ALL, go_ora_results, "ORA")
+go_dotPlot(gseaGo_BP, gseaGo_MF, gseaGo_CC, gseaGo_ALL, go_gsea_results, "GSEA")
 ```
 
 
@@ -163,37 +159,48 @@ ii. In RStudio: Look at the dotplots and choose the go_terms of each GO_category
 
 
 In CC clusters: download dotplots and look  at them to chose the go_terms that you want to show in emaplots and cnetplots.
-Run next command only if you're working in CC clusters. Without closing your current R session, open a new terminal and run this command to download dotplots:
-                    
-```
-scp <CC_user_ID>@<CC_cluster_name>.computecanada.ca:<output_directory>/BP_go_dotplot.png <local_project_directory>
-scp <CC_user_ID>@<CC_cluster_name>.computecanada.ca:<output_directory>/MF_go_dotplot.png <local_project_directory>
-scp <CC_user_ID>@<CC_cluster_name>.computecanada.ca:<output_directory>/CC_go_dotplot.png <local_project_directory>
-```
 
+Open the dotplots and chose the go terms of each category to show in the emaplot and cnetplot.
 You also can chose to show a number of top significant go terms.
+iii. In your Rstudio session, or in your R interactive session, create vectors with chosen go_terms for each category. Examples:
+    Example: CC_cats=c("presynapse", "integral component of presynaptic membrane", "intrinsic component of presynaptic membrane")
+In this code, we chose to pick all the go terms in the simplified lists
 
-iii. In your Rstudio session, or in your R interactive session, create vectors with chosen go_terms for each category. Examples:                         
+                       
+#   Next code takes all terms in the simplified list of terms
+```
+# ORA number of term
+BP_cats=dim(go_BP)[1]
+MF_cats=dim(go_MF)[1]
+CC_cats=dim(go_CC)[1]
+ALL_cats=dim(go_ALL)[1]
+```
 
+Generate ORA GO plot (emaplot)
 ```
-BP_cats=c("learning or memory", "central nervous system neuron differentiation",
-          "synaptic vesicle exocytosis", "chemical synaptic transmission", "regulation of neurotransmitter levels")
-MF_cats=5
-CC_cats=c("presynapse", "integral component of presynaptic membrane", 
-          "intrinsic component of presynaptic membrane", "presynaptic membrane")
+go_emaPlot(go_BP, go_MF, go_CC, go_ALL, go_ora_results, BP_cats, MF_cats, CC_cats, ALL_cats, "ORA")
 ```
-
-iv. Generate enrichment GO plot (emaplot)
+GSEA number of term
 ```
-go_emaPlot(go_BP, go_MF, go_CC, "<output_directory>", BP_cats, MF_cats, CC_cats)
+BP_gsea_cats=dim(gseaGo_BP)[1]
+MF_gsea_cats=dim(gseaGo_MF)[1]
+CC_gsea_cats=dim(gseaGo_CC)[1]
+ALL_gsea_cats=dim(gseaGo_ALL)[1]
+```
+Generate GSEA GO plot (emaplot)
+```
+go_emaPlot(gseaGo_BP, gseaGo_MF, gseaGo_CC, gseaGo_ALL, go_gsea_results, 
+           BP_gsea_cats, MF_gsea_cats, CC_gsea_cats, ALL_gsea_cats, "GSEA")
 ```
 
  v. Generate Cnetplots:
 ```
-go_cnetPlot(DEG_list, go_BP, go_MF, go_CC, "<output_directory>", BP_cats, MF_cats, CC_cats)
+go_cnetPlot(DEG_list, go_BP, go_MF, go_CC, go_ALL, go_ora_results, BP_cats, MF_cats, CC_cats, ALL_cats, "ORA")
+go_cnetPlot(DEG_list, gseaGo_BP, gseaGo_MF, gseaGo_CC, gseaGo_ALL, go_gsea_results, 
+            BP_gsea_cats, MF_gsea_cats, CC_gsea_cats, ALL_gsea_cats, "GSEA")
 ```
 
-### 9. Gsea analysis
+### 9. GSEA on KEEG pathways
  Functional class scoring (FCS) tools, such as GSEA, frequently use all genes gene-level
  statistics or log2 fold changes from the differential expression results.
  This analysis looks whether gene sets for particular biological pathways are enriched
@@ -208,20 +215,17 @@ i. Using all genes DEG list, create a new list including genes fold change and E
 
 ```
 res_entrez<-add_entrezid(DEG_universe)
-foldchanges<-name_foldchanges(res_entrez)
+fc_entrez<-name_foldchanges(res_entrez, "ENTREZ")
 ```
 
 ii Run GSEA analysis, this function uses gseKEGG from "ClusterProfiler" to find
 KEGG pathways.
 
 ```
-gseaKEGG<-gseaKEGG_analysis(foldchanges, "<output_directory>")
+gseaKEGG<-gseaKEGG_analysis(fc_entrez, kegg_gsea_results, "gseaKEGG_pathways.csv")
 ```
 
-iii Look at the found pathways and create a list of interesting pathways.
-In RStudio: Look at pathways results table displayed in console
-In CC clusters: Scrool up to look at the command output to find the list of enriched pathways
-In both cases, create a vector including all pathways ID, of which you want to generate a GSEA plot and pathway image.
+iii Look at the pathways csv file and generate a list of interesting pathways
 example
 
 ```
@@ -232,19 +236,21 @@ iv Create GSEAplot and KEGG image for chosen pathways
 This function uses Pathview to generate pathway images
 
 ```
-go_gseaKEGGplot(gseaKEGG, foldchanges, pathways, "<output_directory>")
+go_gseaKEGGplot(gseaKEGG, fc_entrez, pathways, kegg_gsea_results)
 ```
 
-### 10. KEGG enrichment analysis
+### 10. ORA analysis on KEGG pathway
 You can use this function to look for enrichmed KEEG pathways in a subset of genes. 
 For example, you can run this function for a list of significant DEG genes.
 
 i. Create a gene Entrez IDs lists from the DEG subset list 
 ```
 res_entrez_subset<-add_entrezid(DEG_list)
+res_entrez<-add_entrezid(DEG_list)
+dim(res_entrez_subset)
 ```
 
 ii Run the enrichKEGG analysis which uses 
 ```
-KEGGenrich<-enrichKEGG_analysis(res_entrez_subset, "<output_directory>")
+KEGGenrich<-enrichKEGG_analysis(res_entrez_subset, res_entrez, kegg_ora_results)
 ```

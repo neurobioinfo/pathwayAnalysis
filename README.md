@@ -131,6 +131,8 @@ This list contains statistics, p-value and gene sets associated to enriched GO_t
 saved in csv files.
 
 These commands also generate EnrichGo objects for each category, which we use to make plots in next steps.
+
+
 5. GO enrichment analysis 
 extract the log2 fold changes from theDGE list 
 ```

@@ -299,27 +299,28 @@ gseaKEGG_analysis<-function(foldchanges, output_dir, file_name){
 #         pathways to generate image list
 #         output_dir output directory
 #         prefix to add to KEGG image name file
-go_gseaKEGGplot<-function(gseaKEGG_obj, foldchanges,pathways_list, output_dir, prefix_name){
+go_gseaKEGGplot<-function(gseaKEGG_obj, foldchanges,pathways_list, output_dir){
   
   current_dir<-getwd()
   setwd(paste(current_dir, "/", output_dir, sep=""))
   
-  for (path in pathways_list){
-    plot_file=(paste(prefix_name, "_", path, "_gseaplot.png", sep=""))
-    png(file=plot_file, width=800, height=600)
-    gp<-gseaplot(gseaKEGG_obj, geneSetID = path)
-    print(gp)
-    dev.off()
+  for (pathway in pathways_list){
     
-    ## Use the Pathview R package to integrate the KEGG pathway data from clusterProfiler into pathway images:
-    #detach("package:dplyr", unload=TRUE) # first unload dplyr to avoid conflicts
-    
-    ## Output images for a single significant KEGG pathway
-    pathview(gene.data = foldchanges,
-             pathway.id = path,
+    tryCatch({
+      plot_file=(paste(pathway, "_gseaplot.png", sep=""))
+      png(file=plot_file, width=800, height=600)
+      gp<-gseaplot(gseaKEGG_obj, geneSetID =pathway)
+      print(gp)
+      dev.off()
+      ## Use the Pathview R package to integrate the KEGG pathway data from clusterProfiler into pathway images:
+      #detach("package:dplyr", unload=TRUE) # first unload dplyr to avoid conflicts
+      ## Output images for a single significant KEGG pathway
+      pathview(gene.data = foldchanges,
+             pathway.id = pathway,
              species = "hsa",
-             limit = list(gene = 2, # value gives the max/min limit for foldchanges
-                          cpd = 1))
+             limit = list(gene = 2, cpd = 1))
+      # value gives the max/min limit for foldchanges
+    }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   }
   setwd(current_dir)
 }
@@ -330,26 +331,24 @@ go_gseaKEGGplot<-function(gseaKEGG_obj, foldchanges,pathways_list, output_dir, p
 #        output_dir
 # Output: enrich KEGG pathways csv file
 
-enrichKEGG_analysis<-function(res_entrez, output_dir){
-  genes=res_entrez$ENTREZID
-  yy = enrichKEGG(genes, organism="hsa", pvalueCutoff=0.05)
+enrichKEGG_analysis<-function(res_entrez_subset, res_entrez, output_dir){
+
+  genes=res_entrez_subset$ENTREZID
+  univers=res_entrez$ENTREZID
+  yy = enrichKEGG(gene=genes, 
+                  organism="hsa",
+                  pAdjustMethod="bonferroni",
+                  pvalueCutoff=0.05,
+                  universe=univers)
   enrichKEGG_results<-yy@result
-  head(enrichKEGG_results)
-  #plot(yy)
-  
+  enrichKEGG_results_sig <- subset(enrichKEGG_results, p.adjust < 0.05)
+  view(enrichKEGG_results_sig)
+
   ## Write results to file
   file_name=(paste(output_dir, "/enrichKEGG_results.csv", sep=""))
-  write.csv(enrichKEGG_results, file_name)
-  return( enrichKEGG_results)
-  
-  gseaKEGG_results <- gseaKEGG_obj@result
-  
-  ## Write GSEA results to file
-  file_name=(paste(output_dir, "/", file_name, sep=""))
-  View(gseaKEGG_results)
-  write.csv(gseaKEGG_results, file_name)
-  
-  return(gseaKEGG_obj)
+  write.csv(enrichKEGG_results_sig, file_name)
+  return(yy)
+
 }
 
 ## (. Extract KEGG pathways gene set
